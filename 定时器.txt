@@ -1,0 +1,25 @@
+from machine import Pin,Timer
+
+led=Pin(46,Pin.OUT)
+Counter = 0
+Fun_Num = 0
+
+def fun(tim):
+
+    global Counter
+#  定义一个全局变量，这样可以全局使用，不与def之外的counter冲突，并表示同一个变量
+    Counter = Counter + 1
+    print(Counter)
+    led.value(Counter%2)
+
+#使用定时器1
+tim = Timer(1)
+# 创建一个定时器对象，也就相当于声明
+tim.init(period=1000, mode=Timer.PERIODIC,callback=fun)
+# 初始化设置第一个定时器的相关参数，例如周期，回调函数，
+# Timer.PERIODIC表示定时器工作在周期模式下
+# 在一个周期结束后，就执行回调函数
+
+# 拓展
+# mode还有一种模式是Timer.DOWN，他的工作模式是倒计时，那么就可以定义一个回调函数，实现
+# 比赛倒计时的功能，例如学习通随堂练习的倒计时截至

@@ -1,0 +1,89 @@
+除了基本的呼吸灯效果外，我们还可以制作更炫酷的呼吸灯效果。下面是一个使用ESP32的定时器和中断功能制作呼吸灯效果的示例代码：
+
+#include "esp32-hal-timer.h"
+
+#define LED_PIN 12          // 设置LED1连接的GPIO18引脚
+#define LED_PIN2 13          // 设置LED2连接的GPIO19引脚
+#define LED_CHANNEL 0      // 设置LED1 PWM通道号
+#define LED_CHANNEL2 1      // 设置LED2 PWM通道号
+#define LED_RESOLUTION 8   // 设置PWM分辨率（位数）
+#define delay_time 3
+#define set_time   3
+hw_timer_t *timer = NULL;
+
+void IRAM_ATTR onTimer() {
+  static uint32_t duty = 255;
+  static bool isIncreasing = false;
+  // 更新占空比
+  if (isIncreasing) {
+    duty++;
+    if (duty >= 255) {
+      isIncreasing = false;
+    }
+  } else {
+    duty--;
+    if (duty <= 0) {
+      isIncreasing = true;
+    }
+  }
+  // 更改PWM占空比
+  ledcWrite(LED_CHANNEL, duty);
+}
+
+void setup() {
+  Serial.begin(115200);
+  ledcSetup(LED_CHANNEL, 5000, LED_RESOLUTION);           // 配置PWM通道0
+  ledcSetup(LED_CHANNEL2, 5000, LED_RESOLUTION);           // 配置PWM通道1
+  ledcAttachPin(LED_PIN, LED_CHANNEL);                     // 将PWM通道连接到LED引脚
+  ledcAttachPin(LED_PIN2, LED_CHANNEL2);
+
+  timer = timerBegin(0, 80, true);            // 设置计时器0，预分频80，countUp为true
+  timerAttachInterrupt(timer, onTimer, true);             // 将定时器0连接到onTimer函数
+  timerAlarmWrite(timer, set_time * 1000, true);                        // 设置定时器报警时间为 set_time ms，重复报警
+  timerAlarmEnable(timer);     
+  Serial.println("初始化完成");                       
+}
+
+void loop() {
+  // 呼吸灯效果：逐渐增加和减少占空比
+  for (int duty = 0; duty < 255; duty++) {
+    ledcWrite(LED_CHANNEL2, duty);         // 增加亮度
+    delay(delay_time);
+  }
+  for (int duty = 255; duty > 0; duty--) {
+    ledcWrite(LED_CHANNEL2, duty);         // 减少亮度
+    delay(delay_time);
+  }
+}
+
+//////////////////////////////////////////////
+ESP32实现PWM输出
+/*
+#include "esp32-hal-timer.h"
+
+#define LED_PIN 18          // 设置LED连接的GPIO引脚
+#define LED_CHANNEL 0      // 设置PWM通道号
+#define LED_RESOLUTION 8   // 设置PWM分辨率（位数）
+#define delay_time 3       // 延时时间
+
+void setup() {
+  Serial.begin(115200);
+  ledcSetup(LED_CHANNEL, 5000, LED_RESOLUTION);   // 配置PWM通道
+  ledcAttachPin(LED_PIN, LED_CHANNEL);             // 将PWM通道连接到LED引脚
+  Serial.println("初始化完成");
+}
+
+void loop() {
+  // 呼吸灯效果：逐渐增加和减少占空比
+  for (int duty = 0; duty < 255; duty++) {
+    ledcWrite(LED_CHANNEL, duty);          // 增加亮度
+    delay(delay_time);
+  }
+  for (int duty = 255; duty > 0; duty--) {
+    ledcWrite(LED_CHANNEL, duty);          // 减少亮度
+    delay(delay_time);
+  }
+}
+
+*/
+

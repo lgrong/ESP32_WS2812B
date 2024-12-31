@@ -1,0 +1,21 @@
+from machine import Pin
+import time
+LED=Pin(46,Pin.OUT) #构建 LED 对象,开始熄灭
+KEY=Pin(0,Pin.IN,Pin.PULL_UP) #构建 KEY 对象
+state=0 #LED 引脚状态
+while True:
+ 
+ if KEY.value()==0: #按键被按下
+ time.sleep_ms(10) #消除抖动
+导入 Pin、time 模块
+构建对象 KEY 和 LED
+检测按键是否被按下
+按键被按下执行 LED 状态反转
+ 	if KEY.value()==0: #确认按键被按下
+ 
+ 	state=not state #使用 not 语句而非~语句
+ 	LED.value(state) #LED 状态翻转
+ 	print('KEY')
+ 
+ while not KEY.value(): #检测按键是否松开
+ 	pass

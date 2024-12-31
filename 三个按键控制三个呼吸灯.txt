@@ -1,0 +1,131 @@
+#include "RBD_Button.h" // 引入RBD_Button库
+ 
+// 定义按钮和LED引脚
+int button1Pin = 15;
+int button2Pin = 18;
+int button3Pin = 16;
+ 
+int led1Pin = 4;
+int led2Pin = 5;
+int led3Pin = 6;
+ 
+// 定义LED通道号
+int ch1 = 1;
+int ch2 = 2;
+int ch3 = 3;
+ 
+// 定义占空比变量
+int duty = 0;
+int duty2 = 0;
+int duty3 = 0;
+ 
+// 定义计数器变量
+int count = 0;
+int count2 = 0;
+int count3 = 0;
+ 
+// 定义步进值变量
+int step = 0;
+int step2 = 0;
+int step3 = 0;
+ 
+// 定义呼吸周期变量
+int breathTime = 1;
+int breath2Time = 2;
+int breath3Time = 3;
+ 
+// 创建按钮对象
+RBD::Button button1(button1Pin, INPUT_PULLUP);
+RBD::Button button2(button2Pin, INPUT_PULLUP);
+RBD::Button button3(button3Pin, INPUT_PULLUP);
+ 
+// 设置函数，用于初始化引脚和按钮
+void setup() {
+  // 将LED连接到对应的通道
+  ledcAttachPin(led1Pin, ch1);
+  ledcAttachPin(led2Pin, ch2);
+  ledcAttachPin(led3Pin, ch3);
+ 
+  // 设置按钮的消抖时间
+  button1.setDebounceTimeout(20);
+  button2.setDebounceTimeout(20);
+  button3.setDebounceTimeout(20);
+}
+ 
+// 按键处理函数
+void keyproc() {
+  // 检测按键1是否按下，并调整呼吸周期和步进值
+  if(button1.onPressed()) {
+    breathTime += 1;
+    if(breathTime > 10) {
+      breathTime = 1;
+    }
+    ledcSetup(ch1, 1000, 12);
+    count = pow(2, 12);
+    step = 2 * count / (50 * breathTime);
+  }
+ 
+  // 检测按键2是否按下，并调整呼吸周期和步进值
+  if(button2.onPressed()) {
+    breath2Time += 2;
+    if(breath2Time > 10) {
+      breath2Time = 1;
+    }
+    ledcSetup(ch2, 1000, 12);
+    count2 = pow(2, 12);
+    step2 = 2 * count2 / (50 * breath2Time);
+  }
+ 
+  // 检测按键3是否按下，并调整呼吸周期和步进值
+  if(button3.onPressed()) {
+    breath3Time += 3;
+    if(breath3Time > 10) {
+      breath3Time = 1;
+    }
+    ledcSetup(ch3, 1000, 12);
+    count3 = pow(2, 12);
+    step3 = 2 * count3 / (50 * breath3Time);
+  }
+}
+ 
+// 主循环函数
+void loop() {
+  // 调用按键处理函数
+  keyproc();
+ 
+  // 控制LED1的亮度变化
+  ledcWrite(ch1, duty);
+  duty += step;
+  if(duty > count) {
+    duty = count;
+    step = -step;
+  } else if(duty < 0) {
+    duty = 0;
+    step = -step;
+  }
+  delay(20);
+ 
+  // 控制LED2的亮度变化
+  ledcWrite(ch2, duty2);
+  duty2 += step2;
+  if(duty2 > count2) {
+    duty2 = count2;
+    step2 = -step2;
+  } else if(duty2 < 0) {
+    duty2 = 0;
+    step2 = -step2;
+  }
+  delay(20);
+ 
+  // 控制LED3的亮度变化
+  ledcWrite(ch3, duty3);
+  duty3 += step3;
+  if(duty3 > count3) {
+    duty3 = count3;
+    step3 = -step3;
+  } else if(duty3 < 0) {
+    duty3 = 0;
+    step3 = -step3;
+  }
+  delay(20);
+}
